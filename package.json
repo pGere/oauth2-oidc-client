@@ -1,0 +1,42 @@
+{
+  "name": "nativescript-openid",
+  "version": "1.0.1",
+  "description": "Openid library for Nativescript",
+  "main": "index.js",
+  "scripts": {
+    "lint": "tslint src/**/*.ts",
+    "test": "tsc && karma start",
+    "prepublish": "tsc",
+    "tsc": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/medozs/nativescript-openid.git"
+  },
+  "keywords": [
+    "nativescript",
+    "openid",
+    "keycloak",
+    "authentication"
+  ],
+  "author": "medozs",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/medozs/nativescript-openid/issues"
+  },
+  "homepage": "https://github.com/medozs/nativescript-openid#readme",
+  "dependencies": {
+    "@angular/common": "^5.2.8",
+    "@angular/core": "^5.2.8",
+    "@angular/router": "^5.2.8",
+    "@types/urlparser": "^0.2.0",
+    "nativescript-angular": "^5.2.0",
+    "rxjs": "^5.5.6",
+    "tns-core-modules": "^3.4.1",
+    "urlparser": "^0.3.9"
+  },
+  "devDependencies": {
+    "tslint": "^5.9.1",
+    "typescript": "^2.7.2"
+  }
+}
