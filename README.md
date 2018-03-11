@@ -68,6 +68,7 @@ OpenID connect library for Nativescript
 
 ### app.module.ts
     ...
+    import { HttpClientModule, HTTP_INTERCEPTORS } from "@angular/common/http";
     import { AuthService, AuthInterceptor } from "nativescript-openid";
 
     @NgModule({
