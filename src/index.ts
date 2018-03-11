@@ -26,28 +26,10 @@ import {
 import { Observable } from "rxjs/Observable";
 import { RouterExtensions } from "nativescript-angular/router";
 import { HttpClient } from "@angular/common/http";
-
-import { Subject, ReplaySubject, Subscription } from "rxjs";
-import { map, filter, switchMap, timeout } from "rxjs/operators";
-import { timer } from "rxjs/observable/timer";
-import { interval } from "rxjs/observable/interval";
-import { from } from "rxjs/Observable/from";
-import { of } from "rxjs/Observable/of";
-import { range } from "rxjs/Observable/range";
-
-// Observable class extensions
+import { Subscription } from "rxjs";
+import { timer } from "rxjs/observable/timer"
 import "rxjs/add/observable/of";
-
-// Observable operators
 import "rxjs/add/operator/map";
-import "rxjs/add/operator/do";
-import "rxjs/add/operator/catch";
-import "rxjs/add/operator/switchMap";
-import "rxjs/add/operator/mergeMap";
-import "rxjs/add/operator/filter";
-import "rxjs/add/operator/debounceTime";
-import "rxjs/add/operator/distinctUntilChanged";
-import { TimerObservable } from "rxjs/observable/TimerObservable";
 
 @Injectable()
 export class AuthService  {
