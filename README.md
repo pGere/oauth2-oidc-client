@@ -13,7 +13,7 @@ import { RouterExtensions } from "nativescript-angular/router";
 import { HttpClient } from "@angular/common/http";
 import * as webViewModule from "tns-core-modules/ui/web-view";
 import * as url from "urlparser";
-import { AuthService } from "../services/auth.service";
+import { AuthService } from "nativescript-openid";
 
 @Component({
     moduleId: module.id,
@@ -68,7 +68,7 @@ export class LoginComponent implements OnInit {
 
 ### app.module.ts
 ...
-`import { AuthService, AuthInterceptor } from "./services/auth.service";
+`import { AuthService, AuthInterceptor } from "nativescript-openid";
 
 @NgModule({
     schemas: [...],
