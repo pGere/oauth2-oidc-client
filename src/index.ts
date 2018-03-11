@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 meodzs and/or its affiliates
+ * Copyright (C)2018 medozs and/or its affiliates
  * and other contributors as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,10 +26,14 @@ import {
 import { Observable } from "rxjs/Observable";
 import { RouterExtensions } from "nativescript-angular/router";
 import { HttpClient } from "@angular/common/http";
+
 import { Subject, ReplaySubject, Subscription } from "rxjs";
 import { map, filter, switchMap, timeout } from "rxjs/operators";
 import { timer } from "rxjs/observable/timer";
-
+import { interval } from "rxjs/observable/interval";
+import { from } from "rxjs/Observable/from";
+import { of } from "rxjs/Observable/of";
+import { range } from "rxjs/Observable/range";
 
 // Observable class extensions
 import "rxjs/add/observable/of";
@@ -43,80 +47,105 @@ import "rxjs/add/operator/mergeMap";
 import "rxjs/add/operator/filter";
 import "rxjs/add/operator/debounceTime";
 import "rxjs/add/operator/distinctUntilChanged";
+import { TimerObservable } from "rxjs/observable/TimerObservable";
 
 @Injectable()
 export class AuthService  {
     constructor(private router: RouterExtensions, private http: HttpClient ) {
 
     }
-    private token: string;
+    private accessToken: string;
     private refreshToken: string;
-    private loginRoute: string;
     private accessTimer: Subscription;
     private refreshTimer: Subscription;
-    private isAuthenticated: boolean;
+    private _isAuthenticated: boolean;
+    private readonly DELAYTIME: number = 10 * 1000;
+    private options = {
+        headers: new HttpHeaders().set("Content-Type", "application/x-www-form-urlencoded")
+    };
+    public config: Config;
     public authenticated() {
-        return this.isAuthenticated;
+        return this._isAuthenticated;
     }
 
     public getToken() {
-        return this.token;
+        return this.accessToken;
     }
 
     public login() {
-        this.router.navigate([this.loginRoute], { clearHistory: true });
-        this.token = "";
+        this.accessToken = "";
         this.refreshToken = "";
-        this.isAuthenticated = false;
+        this._isAuthenticated = false;
         this.refreshTimer.unsubscribe();
         this.accessTimer.unsubscribe();
+        this.router.navigate([this.config.loginRoute], { clearHistory: true });
     }
     public logout() {
-        this.init();
+        this.login();
     }
 
-    public init(code?: string, loginRoute?: string, homeRoute?: string, host?: string, clientId?: string, clientSecret?: string ) {
-        this.token = "";
+    private renewToken (res) {
+        this.accessTimer = timer((res.expires_in * 1000) - this.DELAYTIME).subscribe(() => {
+            this.http.post(`${this.config.host}/auth/realms/public/protocol/openid-connect/token`,
+            `client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=app&grant_type=refresh_token&refresh_token=${this.refreshToken}`,
+            this.options).map(res2 => <IToken>res2).subscribe(res2 => {
+                this.accessToken = res2.access_token;
+                this.refreshToken = res2.refresh_token;
+                this.renewToken(res2);
+            }, (err) => this.login());
+        }, (err) => console.error(err));
+    }
+    public init(code?: string) {
+        this.accessToken = "";
         this.refreshToken = "";
-        this.isAuthenticated = false;
-        if (code == null) {
-            this.login();
-            return;
-        }
-        this.loginRoute = loginRoute;
-        let options = {
-            headers: new HttpHeaders().set("Content-Type", "application/x-www-form-urlencoded")
-        };
-        interface ITokens {
-            "access_token": string;
-            "expires_in": number;
-            "refresh_expires_in": number;
-            "refresh_token": string;
-            "token_type": string;
-            "id_token": string;
-            "not-before-policy": number;
-            "session_state": string;
-        }
-        let renewToken = (res: any) => {
-            this.accessTimer = timer(res.expires_in).subscribe(() => {
-                this.http.post(`${host}/auth/realms/public/protocol/openid-connect/token`,
-                `client_id=${clientId}&client_secret=${clientSecret}&redirect_uri=app&grant_type=refresh_token&refresh_token=${this.refreshToken}`,
-                options).map(res2 => <ITokens>res2).subscribe(res2 => {
-                    renewToken(res2);
-                });
-            });
-        };
-        this.http.post(`${host}/auth/realms/public/protocol/openid-connect/token`,
-        `client_id=${clientId}&client_secret=${clientSecret}&redirect_uri=app&grant_type=authorization_code&code=${code}`,
-        options).map(res => <ITokens>res).subscribe(res => {
-            this.token = res.access_token;
+        this._isAuthenticated = false;
+        this.http.post(`${this.config.host}/auth/realms/public/protocol/openid-connect/token`,
+        `client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=app&grant_type=authorization_code&code=${code}`,
+        this.options).map(res => <IToken>res).subscribe(res => {
+            this.accessToken = res.access_token;
             this.refreshToken = res.refresh_token;
-            this.isAuthenticated = true;
-            this.router.navigate([homeRoute], { clearHistory: true });
-            renewToken(res);
-            this.refreshTimer = timer(res.refresh_expires_in).subscribe(() => {
+            this._isAuthenticated = true;
+            this.router.navigate([this.config.homeRoute], { clearHistory: true });
+            this.renewToken(res);
+            this.refreshTimer = timer((res.refresh_expires_in * 1000) - this.DELAYTIME).subscribe(() => {
                 this.login();
             });
-        });
+        }, (err) => console.error(err));
     }
+}
+
+interface IToken {
+    "access_token": string;
+    "expires_in": number;
+    "refresh_expires_in": number;
+    "refresh_token": string;
+    "token_type": string;
+    "id_token": string;
+    "not-before-policy": number;
+    "session_state": string;
+}
+
+export interface Config {
+    clientId: string;
+    clientSecret: string;
+    host: string;
+    loginRoute: string;
+    homeRoute: string;
+}
+
+
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  constructor(private authService: AuthService) {}
+
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+
+    const token = `Bearer ${this.authService.getToken()}`;
+    req = req.clone({
+      setHeaders: {
+        Authorization: token
+      }
+    });
+    return next.handle(req);
+  }
 }
