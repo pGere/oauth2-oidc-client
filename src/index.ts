@@ -26,26 +26,52 @@ import {
 import { Observable } from "rxjs/Observable";
 import { RouterExtensions } from "nativescript-angular/router";
 import { HttpClient } from "@angular/common/http";
-import { Subscription } from "rxjs";
-import { timer } from "rxjs/observable/timer"
+
+import { Subject, ReplaySubject, Subscription } from "rxjs";
+import { map, filter, switchMap, timeout } from "rxjs/operators";
+import { timer } from "rxjs/observable/timer";
+import { interval } from "rxjs/observable/interval";
+import { from } from "rxjs/Observable/from";
+import { of } from "rxjs/Observable/of";
+import { range } from "rxjs/Observable/range";
+
+// Observable class extensions
 import "rxjs/add/observable/of";
+
+// Observable operators
 import "rxjs/add/operator/map";
+import "rxjs/add/operator/do";
+import "rxjs/add/operator/catch";
+import "rxjs/add/operator/switchMap";
+import "rxjs/add/operator/mergeMap";
+import "rxjs/add/operator/filter";
+import "rxjs/add/operator/debounceTime";
+import "rxjs/add/operator/distinctUntilChanged";
+import { TimerObservable } from "rxjs/observable/TimerObservable";
 
 @Injectable()
 export class AuthService  {
-    constructor(private router: RouterExtensions, private http: HttpClient ) {
-
-    }
+    constructor(private router: RouterExtensions, private http: HttpClient ) {}
     private accessToken: string;
     private refreshToken: string;
     private accessTimer: Subscription;
     private refreshTimer: Subscription;
     private _isAuthenticated: boolean;
-    private readonly DELAYTIME: number = 10 * 1000;
     private options = {
         headers: new HttpHeaders().set("Content-Type", "application/x-www-form-urlencoded")
     };
-    public config: Config;
+    private readonly REDIRECTDEFAULT = "app";
+    private readonly DELAYTIMEDEFAULT = 10 * 1000;
+    private _config: Config;
+    set config(config: Config) {
+        this._config = config;
+        if (!this._config.REDIRECT) {this._config.REDIRECT = this.REDIRECTDEFAULT; }
+        if (!this._config.DELAYTIME) {this._config.DELAYTIME = this.DELAYTIMEDEFAULT; }
+    }
+    get config() {
+        return this._config;
+    }
+
     public authenticated() {
         return this._isAuthenticated;
     }
@@ -54,22 +80,29 @@ export class AuthService  {
         return this.accessToken;
     }
 
-    public login() {
+    public getUser(): Observable<Object> {
+        return this.http.get(`${this.config.openIdConfig.userinfo_endpoint}`);
+    }
+
+    public login(): string {
         this.accessToken = "";
         this.refreshToken = "";
         this._isAuthenticated = false;
-        this.refreshTimer.unsubscribe();
-        this.accessTimer.unsubscribe();
-        this.router.navigate([this.config.loginRoute], { clearHistory: true });
+        if (this.refreshTimer) { this.refreshTimer.unsubscribe(); }
+        if (this.accessTimer) { this.accessTimer.unsubscribe(); }
+        this.router.navigate([this.config.authRoute], { clearHistory: true });
+        return `${this.config.openIdConfig.authorization_endpoint}?client_id=${this.config.clientId}&redirect_uri=${this.config.REDIRECT}&response_type=code&scope=openid+email+profile`;
     }
-    public logout() {
+    public logout(): string {
+        this.router.navigate([this.config.authRoute], { clearHistory: true });
         this.login();
+        return  `${this.config.openIdConfig.end_session_endpoint}?redirect_uri=${this.config.REDIRECT}`;
     }
 
     private renewToken (res) {
-        this.accessTimer = timer((res.expires_in * 1000) - this.DELAYTIME).subscribe(() => {
-            this.http.post(`${this.config.host}/auth/realms/public/protocol/openid-connect/token`,
-            `client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=app&grant_type=refresh_token&refresh_token=${this.refreshToken}`,
+        this.accessTimer = timer((res.expires_in * 1000) - this.config.DELAYTIME).subscribe(() => {
+            this.http.post(`${this.config.openIdConfig.token_endpoint}`,
+            `client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&grant_type=refresh_token&refresh_token=${this.refreshToken}`,
             this.options).map(res2 => <IToken>res2).subscribe(res2 => {
                 this.accessToken = res2.access_token;
                 this.refreshToken = res2.refresh_token;
@@ -77,21 +110,18 @@ export class AuthService  {
             }, (err) => this.login());
         }, (err) => console.error(err));
     }
-    public init(code?: string) {
+    public init(code ?: string) {
         this.accessToken = "";
         this.refreshToken = "";
         this._isAuthenticated = false;
-        this.http.post(`${this.config.host}/auth/realms/public/protocol/openid-connect/token`,
-        `client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=app&grant_type=authorization_code&code=${code}`,
+        this.http.post(`${this.config.openIdConfig.token_endpoint}`,
+        `client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&grant_type=authorization_code&code=${code}`,
         this.options).map(res => <IToken>res).subscribe(res => {
             this.accessToken = res.access_token;
             this.refreshToken = res.refresh_token;
             this._isAuthenticated = true;
             this.router.navigate([this.config.homeRoute], { clearHistory: true });
             this.renewToken(res);
-            this.refreshTimer = timer((res.refresh_expires_in * 1000) - this.DELAYTIME).subscribe(() => {
-                this.login();
-            });
         }, (err) => console.error(err));
     }
 }
@@ -110,11 +140,22 @@ interface IToken {
 export interface Config {
     clientId: string;
     clientSecret: string;
-    host: string;
-    loginRoute: string;
+    authRoute: string;
     homeRoute: string;
+    REDIRECT?: string;
+    DELAYTIME?: number;
+    openIdConfig: OpenIdConfig;
 }
 
+export interface OpenIdConfig {
+    issuer: string;
+    authorization_endpoint: string;
+    token_endpoint: string;
+    token_introspection_endpoint: string;
+    userinfo_endpoint: string;
+    end_session_endpoint: string;
+    [x: string]: any;
+}
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
