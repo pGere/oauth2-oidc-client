@@ -7,7 +7,7 @@ OpenId Connect library for Nativescript
 
 ## Usage
 
-### login.component.ts
+### auth.component.ts
     import { Component, OnInit } from "@angular/core";
     import { RouterExtensions } from "nativescript-angular/router";
     import { HttpClient } from "@angular/common/http";
@@ -55,7 +55,7 @@ OpenId Connect library for Nativescript
         }
     }
 
-### login.component.html
+### auth.component.html
     <GridLayout backgroundColor="#CCCCCC">
         <ScrollView>
             <WebView
