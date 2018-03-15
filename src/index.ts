@@ -85,20 +85,22 @@ export class AuthService  {
     }
 
     public login(): string {
-        this.accessToken = "";
-        this.refreshToken = "";
-        this._isAuthenticated = false;
-        if (this.refreshTimer) { this.refreshTimer.unsubscribe(); }
-        if (this.accessTimer) { this.accessTimer.unsubscribe(); }
-        this.router.navigate([this.config.authRoute], { clearHistory: true });
+        this.reset();
         return `${this.config.openIdConfig.authorization_endpoint}?client_id=${this.config.clientId}&redirect_uri=${this.config.REDIRECT}&response_type=code&scope=openid+email+profile`;
     }
     public logout(): string {
+        this.reset();
         this.router.navigate([this.config.authRoute], { clearHistory: true });
-        this.login();
         return  `${this.config.openIdConfig.end_session_endpoint}?redirect_uri=${this.config.REDIRECT}`;
     }
 
+    private reset() {
+        this.accessToken = null;
+        this.refreshToken = null;
+        this._isAuthenticated = false;
+        if (this.refreshTimer) { this.refreshTimer.unsubscribe(); }
+        if (this.accessTimer) { this.accessTimer.unsubscribe(); }
+    }
     private renewToken (res) {
         this.accessTimer = timer((res.expires_in * 1000) - this.config.DELAYTIME).subscribe(() => {
             this.http.post(`${this.config.openIdConfig.token_endpoint}`,
@@ -111,9 +113,7 @@ export class AuthService  {
         }, (err) => console.error(err));
     }
     public init(code ?: string) {
-        this.accessToken = "";
-        this.refreshToken = "";
-        this._isAuthenticated = false;
+        this.reset();
         this.http.post(`${this.config.openIdConfig.token_endpoint}`,
         `client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&grant_type=authorization_code&code=${code}`,
         this.options).map(res => <IToken>res).subscribe(res => {
