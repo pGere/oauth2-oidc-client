@@ -20,6 +20,8 @@ OpenId Connect library for Nativescript
         templateUrl: "auth.component.html"
     })
     export class AuthComponent implements OnInit {
+        private authURL;
+        private logedIn?: boolean;
         public constructor(
             private router: RouterExtensions,
             private http: HttpClient,
@@ -38,8 +40,11 @@ OpenId Connect library for Nativescript
                     }
                 };
         }
-        private authURL;
-        private logedIn?: boolean;
+
+        public ngOnInit() {
+            this.login();
+        }
+
         public loadStarted(e: webViewModule.LoadEventData) {
             let parsedURL = url.parse(e.url);
             let code = parsedURL.query.params["code"];
@@ -50,8 +55,16 @@ OpenId Connect library for Nativescript
             }
         }
 
-        public ngOnInit() {
+        public login() {
             this.authURL = this.authService.login();
+        }
+
+        public logout() {
+            this.authURL = this.authService.logout();
+        }
+
+        public getUser() {
+            this.authService.getUser().subscribe(x => console.log(x));
         }
     }
 
