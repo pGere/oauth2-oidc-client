@@ -1,37 +1,20 @@
 {
-  "name": "nativescript-openid",
-  "version": "1.2.0",
-  "description": "Openid library for Nativescript",
-  "main": "dist/index.js",
+  "name": "angular-oidc-client",
+  "version": "1.0.0",
+  "description": "Universal OpenID Connect Client library for Angular",
+  "main": "index.js",
   "scripts": {
-    "lint": "tslint src/**/*.ts",
-    "test": "tsc && karma start",
-    "prepublish": "tsc",
-    "tsc": "tsc"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/medozs/nativescript-openid.git"
+    "url": "git+https://github.com/medozs/angular-oidc-client.git"
   },
-  "keywords": [
-    "nativescript",
-    "openid",
-    "keycloak",
-    "authentication",
-    "angular"
-  ],
-  "author": "medozs",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/medozs/nativescript-openid/issues"
-  },
-  "homepage": "https://github.com/medozs/nativescript-openid#readme",
   "dependencies": {
     "@angular/common": "^5.2.8",
     "@angular/core": "^5.2.8",
     "@angular/router": "^5.2.8",
     "@types/urlparser": "^0.2.0",
-    "nativescript-angular": "^5.2.0",
     "rxjs": "^5.5.6",
     "tns-core-modules": "^3.4.1",
     "urlparser": "^0.3.9"
@@ -39,5 +22,21 @@
   "devDependencies": {
     "tslint": "^5.9.1",
     "typescript": "^2.7.2"
-  }
+  },
+  "keywords": [
+    "openid",
+    "connect",
+    "oidc",
+    "client",
+    "angular",
+    "nativescript",
+    "keycloak",
+    "typescript"
+  ],
+  "author": "medozs",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/medozs/angular-oidc-client/issues"
+  },
+  "homepage": "https://github.com/medozs/angular-oidc-client#readme"
 }
