@@ -24,9 +24,7 @@ import {
   HttpHeaders
 } from "@angular/common/http";
 import { Observable } from "rxjs/Observable";
-import { RouterExtensions } from "nativescript-angular/router";
 import { HttpClient } from "@angular/common/http";
-
 import { Subject, ReplaySubject, Subscription } from "rxjs";
 import { map, filter, switchMap, timeout } from "rxjs/operators";
 import { timer } from "rxjs/observable/timer";
@@ -51,7 +49,7 @@ import { TimerObservable } from "rxjs/observable/TimerObservable";
 
 @Injectable()
 export class AuthService  {
-    constructor(private router: RouterExtensions, private http: HttpClient ) {}
+    constructor(private http: HttpClient ) {}
     private accessToken: string;
     private refreshToken: string;
     private accessTimer: Subscription;
@@ -90,7 +88,6 @@ export class AuthService  {
     }
     public logout(): string {
         this.reset();
-        this.router.navigate([this.config.authRoute], { clearHistory: true });
         return  `${this.config.openIdConfig.end_session_endpoint}?redirect_uri=${this.config.REDIRECT}`;
     }
 
@@ -120,7 +117,7 @@ export class AuthService  {
             this.accessToken = res.access_token;
             this.refreshToken = res.refresh_token;
             this._isAuthenticated = true;
-            this.router.navigate([this.config.homeRoute], { clearHistory: true });
+            this.config.homeRoute();
             this.renewToken(res);
         }, (err) => console.error(err));
     }
@@ -128,20 +125,20 @@ export class AuthService  {
 
 interface IToken {
     "access_token": string;
-    "expires_in": number;
-    "refresh_expires_in": number;
+    "expires_in": string;
+    "refresh_expires_in": string;
     "refresh_token": string;
     "token_type": string;
     "id_token": string;
-    "not-before-policy": number;
+    "not-before-policy": string;
     "session_state": string;
 }
 
 export interface Config {
     clientId: string;
     clientSecret: string;
-    authRoute: string;
-    homeRoute: string;
+    authRoute: () => void;
+    homeRoute: ()=> void;
     REDIRECT?: string;
     DELAYTIME?: number;
     openIdConfig: OpenIdConfig;

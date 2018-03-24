@@ -17,7 +17,8 @@
     "nativescript",
     "openid",
     "keycloak",
-    "authentication"
+    "authentication",
+    "angular"
   ],
   "author": "medozs",
   "license": "Apache-2.0",

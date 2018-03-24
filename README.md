@@ -1,40 +1,81 @@
-﻿# Nativescript OpenID
+﻿# Angular OIDC Client
 
-OpenId Connect library for Nativescript
+OpenId Connect Client library for Angular
 
 ## Installation: 
-`npm install nativescript-openid --save`
+`npm install nangular-oidc-client --save`
 
 ## Usage
 
-### auth.component.ts
+### auth.ts (NativeScript)
     import { Component, OnInit } from "@angular/core";
-    import { RouterExtensions } from "nativescript-angular/router";
+    import { RouterExtensions, PageRoute } from "nativescript-angular/router";
     import { HttpClient } from "@angular/common/http";
     import * as webViewModule from "tns-core-modules/ui/web-view";
     import * as url from "urlparser";
-    import { AuthService } from "nativescript-openid";
+    import { AuthService } from "angular-oidc-client";
+    import { Settings } from "../data.model";
+    import { timer } from "rxjs/observable/timer";
+
 
     @Component({
         moduleId: module.id,
-        templateUrl: "auth.component.html"
+        template: // html
+        `
+        <style>
+            .icon-moon {
+                font-family: "icomoon";
+            }
+            @keyframes rotating {
+                from {
+                transform: rotate(0deg);
+                }
+                to {
+                transform: rotate(360deg);
+                }
+            }
+            .rotating {
+                animation: rotating 2s linear infinite;
+            }
+        </style>
+        <Label
+            visibility="{{ loading ? 'visible' : 'collapsed' }}"
+            text=""
+            textWrap="true"
+            class="icon-moon rotating"
+            verticalAlignment="middle"
+            style="font-size: 30; display: inline-block;"
+            horizontalAlignment="center">
+        </Label>
+        <WebView
+            visibility="{{ !loading ? 'visible' : 'collapsed' }}"
+            [src]="authURL"
+            (loadStarted)="loadStarted($event)"></WebView>
+        `
     })
     export class AuthComponent implements OnInit {
-        private authURL;
-        private logedIn?: boolean;
+        public authURL;
+        public loading: boolean = true;
         public constructor(
             private router: RouterExtensions,
+            private pageRoute: PageRoute,
             private http: HttpClient,
-            private authService: AuthService) {
+            private authService: AuthService,
+            private settings: Settings) {
                 this.authService.config = {
-                    authRoute: "",
-                    homeRoute: "...",
+                    authRoute: () => {
+                        this.router.navigate([""], { clearHistory: true });
+                    },
+                    homeRoute: () => {
+                        this.router.navigate(["/home"], { clearHistory: true });
+                    },
                     clientId: "...",
                     clientSecret: "...",
                     openIdConfig: {
                         "issuer": "...",
                         "authorization_endpoint": "...",
                         "token_endpoint": "...",
+                        "token_introspection_endpoint": ...",
                         "userinfo_endpoint": "...",
                         "end_session_endpoint": "..."
                     }
@@ -42,46 +83,86 @@ OpenId Connect library for Nativescript
         }
 
         public ngOnInit() {
-            this.login();
+            this.pageRoute.activatedRoute
+            .switchMap(activatedRoute => activatedRoute.queryParams)
+            .forEach((params) => {
+                let action = params["action"];
+                if (action == null || action === "login") {
+                    this.login();
+                } else if (action === "logout") {
+                    this.logout();
+                }
+                });
         }
 
-        public loadStarted(e: webViewModule.LoadEventData) {
-            let parsedURL = url.parse(e.url);
-            let code = parsedURL.query.params["code"];
+        private parseURLCode(urlstr) {
+            let parsedURL = url.parse(urlstr);
+            let code = parsedURL.query ? parsedURL.query.params["code"] : null;
             let redirectName = parsedURL.path.base;
-            if (code && redirectName === `auth/${this.authService.config.REDIRECT}`) {
-                this.logedIn = true;
-                this.authService.init(code);
+            if (code && redirectName.match(`\\w+/${this.authService.config.REDIRECT}`)) {
+                return code;
+            } else {
+                return null;
             }
         }
 
         public login() {
             this.authURL = this.authService.login();
+            timer(1000).subscribe(x => { this.loading = false; });
         }
 
         public logout() {
+            this.loading = true;
             this.authURL = this.authService.logout();
+            timer(1000).subscribe(x => this.login());
         }
 
         public getUser() {
-            this.authService.getUser().subscribe(x => console.log(x));
+            this.authService.getUser().subscribe(x => console.log(JSON.stringify(x)));
+        }
+
+        public loadStarted(e: webViewModule.LoadEventData) {
+            let authCode = this.parseURLCode(e.url);
+            if (authCode) {
+                this.loading = true;
+                this.authURL = "";
+                this.authService.init(authCode);
+            }
         }
     }
 
-### auth.component.html
-    <GridLayout backgroundColor="#CCCCCC">
-        <ScrollView>
-            <WebView
-            [Visibility]="!logedIn"
-            [src]="authURL"
-            (loadStarted)="loadStarted($event)"></WebView>
-        </ScrollView>
-    </GridLayout>
+    import { NgModule, NO_ERRORS_SCHEMA } from "@angular/core";
+    import { NativeScriptRouterModule } from "nativescript-angular/router";
+    import { NativeScriptCommonModule } from "nativescript-angular/common";
+    import { NativeScriptFormsModule } from "nativescript-angular/forms";
+    import { Route } from "@angular/router";
+
+    export const routerConfig: Route[] = [
+        {
+            path: "",
+            component: AuthComponent
+        }
+    ];
+    @NgModule({
+        schemas: [NO_ERRORS_SCHEMA],
+        imports: [
+            NativeScriptFormsModule,
+            NativeScriptCommonModule,
+            NativeScriptRouterModule,
+            NativeScriptRouterModule.forChild(routerConfig)
+        ],
+        declarations: [AuthComponent]
+    })
+
+    export class AuthModule {
+        constructor() { }
+    }
+  
 
 ### app.module.ts
     ...
     import { HttpClientModule, HTTP_INTERCEPTORS } from "@angular/common/http";
-    import { AuthService, AuthInterceptor } from "nativescript-openid";
+    import { AuthService, AuthInterceptor } from "angular-oidc-client";
 
     @NgModule({
         schemas: [...],
