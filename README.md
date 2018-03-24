@@ -15,6 +15,8 @@ Universal OpenID Connect Client library for Angular
     import * as url from "urlparser";
     import { AuthService } from "angular-oidc-client";
     import { timer } from "rxjs/observable/timer";
+    import "rxjs/add/operator/switchMap";
+
 
 
     @Component({
