@@ -14,7 +14,6 @@ Universal OpenID Connect Client library for Angular
     import * as webViewModule from "tns-core-modules/ui/web-view";
     import * as url from "urlparser";
     import { AuthService } from "angular-oidc-client";
-    import { Settings } from "../data.model";
     import { timer } from "rxjs/observable/timer";
 
 
@@ -60,8 +59,7 @@ Universal OpenID Connect Client library for Angular
             private router: RouterExtensions,
             private pageRoute: PageRoute,
             private http: HttpClient,
-            private authService: AuthService,
-            private settings: Settings) {
+            private authService: AuthService) {
                 this.authService.config = {
                     authRoute: () => {
                         this.router.navigate([""], { clearHistory: true });

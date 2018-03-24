@@ -1,10 +1,13 @@
 {
   "name": "angular-oidc-client",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Universal OpenID Connect Client library for Angular",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "tslint src/**/*.ts",
+    "test": "tsc && karma start",
+    "prepublish": "tsc",
+    "tsc": "tsc"
   },
   "repository": {
     "type": "git",
@@ -16,7 +19,6 @@
     "@angular/router": "^5.2.8",
     "@types/urlparser": "^0.2.0",
     "rxjs": "^5.5.6",
-    "tns-core-modules": "^3.4.1",
     "urlparser": "^0.3.9"
   },
   "devDependencies": {
