@@ -3,7 +3,7 @@
 Universal OpenID Connect Client library for Angular
 
 ## Installation: 
-`npm install nangular-oidc-client --save`
+`npm install angular-oidc-client --save`
 
 ## Usage
 
