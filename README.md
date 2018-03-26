@@ -18,7 +18,6 @@ Universal OpenID Connect Client library for Angular
     import "rxjs/add/operator/switchMap";
 
 
-
     @Component({
         moduleId: module.id,
         template: // html
@@ -75,7 +74,7 @@ Universal OpenID Connect Client library for Angular
                         "issuer": "...",
                         "authorization_endpoint": "...",
                         "token_endpoint": "...",
-                        "token_introspection_endpoint": ...",
+                        "token_introspection_endpoint": "...",
                         "userinfo_endpoint": "...",
                         "end_session_endpoint": "..."
                     }
@@ -158,6 +157,150 @@ Universal OpenID Connect Client library for Angular
         constructor() { }
     }
   
+### auth.ts (Web)
+    declare var document;
+    import { Component, OnInit } from "@angular/core";
+    import { Router, ActivatedRoute } from "@angular/router";
+    import { HttpClient } from "@angular/common/http";
+    import * as url from "urlparser";
+    import { AuthService } from "angular-oidc-client";
+    import { timer } from "rxjs/observable/timer";
+    import "rxjs/add/operator/switchMap";
+
+
+    @Component({
+        moduleId: module.id,
+        template: // html
+        `
+        <style>
+            .icon-moon {
+                font-family: "icomoon";
+            }
+            @keyframes rotating {
+                from {
+                transform: rotate(0deg);
+                }
+                to {
+                transform: rotate(360deg);
+                }
+            }
+            .rotating {
+                animation: rotating 2s linear infinite;
+            }
+        </style>
+        <Label
+            visibility="{{ loading ? 'visible' : 'collapsed' }}"
+            text=""
+            textWrap="true"
+            class="icon-moon rotating"
+            verticalAlignment="middle"
+            style="font-size: 30; display: inline-block;"
+            horizontalAlignment="center">
+        </Label>
+        `
+    })
+    export class AuthComponent implements OnInit {
+        public loading: boolean = true;
+        public constructor(
+            private router: Router,
+            private pageRoute: ActivatedRoute,
+            private http: HttpClient,
+            private authService: AuthService) {
+                this.authService.config = {
+                    authRoute: () => {
+                        this.router.navigate([""]);
+                    },
+                    homeRoute: () => {
+                        this.router.navigate(["/home"]);
+                    },
+                    clientId: "...",
+                    clientSecret: "...",
+                    openIdConfig: {
+                        "issuer": "...",
+                        "authorization_endpoint": "...",
+                        "token_endpoint": "...",
+                        "token_introspection_endpoint": "...",
+                        "userinfo_endpoint": "...",
+                        "end_session_endpoint": "..."
+                    }
+                };
+        }
+
+        public ngOnInit() {
+            this.pageRoute.queryParams
+            .subscribe((params) => {
+            let action = params["action"];
+                if (action == null || action === "login") {
+                    this.login();
+                } else if (action === "logout") {
+                    this.logout();
+                }
+            });
+            this.loadStarted({url: window.location.href });
+        }
+
+        private parseURLCode(urlstr) {
+            let parsedURL = url.parse(urlstr);
+            let code = parsedURL.query ? parsedURL.query.params["code"] : null;
+            let redirectName = parsedURL.path.base;
+            if (code && redirectName.match(`\\w+/${this.authService.config.REDIRECT}`)) {
+                return code;
+            } else {
+                return null;
+            }
+        }
+
+        public login() {
+            window.location.href = this.authService.login();
+            timer(1000).subscribe(x => { this.loading = false; });
+        }
+
+        public logout() {
+            this.loading = true;
+            window.location.href = this.authService.logout();
+            timer(1000).subscribe(x => this.login());
+        }
+
+        public getUser() {
+            this.authService.getUser().subscribe(x => console.log(JSON.stringify(x)));
+        }
+
+        public loadStarted(e) {
+            let authCode = this.parseURLCode(e.url);
+            if (authCode) {
+                this.loading = true;
+                this.authService.init(authCode);
+            }
+        }
+    }
+
+    import { NgModule, NO_ERRORS_SCHEMA } from "@angular/core";
+    import { RouterModule } from "@angular/router";
+    import { CommonModule } from "@angular/common";
+    import { FormsModule } from "@angular/forms";
+    import { Route } from "@angular/router";
+
+    export const routerConfig: Route[] = [
+        {
+            path: "",
+            component: AuthComponent
+        }
+    ];
+    @NgModule({
+        schemas: [NO_ERRORS_SCHEMA],
+        imports: [
+            FormsModule,
+            CommonModule,
+            RouterModule,
+            RouterModule.forChild(routerConfig)
+        ],
+        declarations: [AuthComponent]
+    })
+
+    export class AuthModule {
+        constructor() { }
+    }
+
 
 ### app.module.ts
     ...
