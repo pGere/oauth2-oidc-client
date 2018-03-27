@@ -98,7 +98,7 @@ Universal OpenID Connect Client library for Angular
             let parsedURL = url.parse(urlstr);
             let code = parsedURL.query ? parsedURL.query.params["code"] : null;
             let redirectName = parsedURL.path.base;
-            if (code && redirectName.match(`\\w+/${this.authService.config.REDIRECT}`)) {
+            if (code && redirectName.match(`\\w*/?${this.authService.config.REDIRECT}`)) {
                 return code;
             } else {
                 return null;
@@ -215,6 +215,7 @@ Universal OpenID Connect Client library for Angular
                     },
                     clientId: "...",
                     clientSecret: "...",
+                    REDIRECT: "...",
                     openIdConfig: {
                         "issuer": "...",
                         "authorization_endpoint": "...",
@@ -243,7 +244,7 @@ Universal OpenID Connect Client library for Angular
             let parsedURL = url.parse(urlstr);
             let code = parsedURL.query ? parsedURL.query.params["code"] : null;
             let redirectName = parsedURL.path.base;
-            if (code && redirectName.match(`\\w+/${this.authService.config.REDIRECT}`)) {
+            if (code && redirectName.match(`\\w*/?${this.authService.config.REDIRECT}`)) {
                 return code;
             } else {
                 return null;
