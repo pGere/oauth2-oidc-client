@@ -190,12 +190,14 @@ Universal OpenID Connect Client library for Angular
         </style>
         <Label
             visibility="{{ loading ? 'visible' : 'collapsed' }}"
-            text=""
-            textWrap="true"
             class="icon-moon rotating"
-            verticalAlignment="middle"
-            style="font-size: 30; display: inline-block;"
-            horizontalAlignment="center">
+            innerText=""
+            style="
+            font-size: 30;
+            display: inline-block;
+            position: absolute;
+            top:50%;
+            left:50%;">
         </Label>
         `
     })

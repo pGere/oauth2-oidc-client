@@ -1,6 +1,6 @@
 {
   "name": "angular-oidc-client",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Universal OpenID Connect Client library for Angular",
   "main": "dist/index.js",
   "scripts": {
