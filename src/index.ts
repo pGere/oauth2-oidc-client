@@ -57,33 +57,6 @@ export class AuthService  {
         return this._config;
     }
 
-/*
-  private getToken() {
-    return http.post(`${configs.OIDC_TOKEN_ENDPOINT}`,
-        `client_id=${configs.OIDC_CLIENT_ID}&client_secret=${configs.OIDC_CLIENT_SECRET}&grant_type=password&username=${configs.OIDC_USERNAME}&password=${configs.OIDC_PASSWORD}`, 
-        { headers: {'Content-Type':'application/x-www-form-urlencoded' }})
-        .then( (response) => {
-          return Promise.resolve(response.data['access_token']);
-        })
-        .catch( (error) => {
-          return Promise.reject(error);
-        });
-  }
-
-    private requestData(deviceId, topic) {
-    return getToken().then((token) =>
-      http.get(`${configs.HOST}/api/v1/device/${configs.SERVICE_MONITORING_ID}/${deviceId}/${topic}?limit=50`,
-      { headers: {'content-type': 'application/json','Authorization': `Bearer ${token}` }})
-      .then( (response) => {
-        return Promise.resolve(response.data);
-      })
-      .catch((error) => {
-        return Promise.reject(error);
-      })  
-  );
-  }
-*/
-
     public authenticated() {
         return this._isAuthenticated;
     }
