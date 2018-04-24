@@ -15,18 +15,11 @@
  * limitations under the License.s
  */
 
-import { Injectable } from "@angular/core";
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor,
-  HttpHeaders
-} from "@angular/common/http";
+
 import { Observable } from "rxjs/Observable";
-import { HttpClient } from "@angular/common/http";
 import { Subscription } from "rxjs";
 import { timer } from "rxjs/observable/timer";
+import http from 'axios';
 
 // Observable class extensions
 import "rxjs/add/observable/of";
@@ -40,28 +33,56 @@ import "rxjs/add/operator/filter";
 import "rxjs/add/operator/debounceTime";
 import "rxjs/add/operator/distinctUntilChanged";
 
-@Injectable()
+
 export class AuthService  {
-    constructor(private http: HttpClient ) {}
     private accessToken: string;
     private refreshToken: string;
     private accessTimer: Subscription;
     private refreshTimer: Subscription;
     private _isAuthenticated: boolean;
-    private options = {
-        headers: new HttpHeaders().set("Content-Type", "application/x-www-form-urlencoded")
-    };
+    private formOptions = { headers: {'Content-Type':'application/x-www-form-urlencoded' }};
     private readonly REDIRECTDEFAULT = "app";
     private readonly DELAYTIMEDEFAULT = 10 * 1000;
+    private readonly SCOPE = "openid+email+profile";
+    
     private _config: Config;
     set config(config: Config) {
         this._config = config;
         if (!this._config.REDIRECT) {this._config.REDIRECT = this.REDIRECTDEFAULT; }
         if (!this._config.DELAYTIME) {this._config.DELAYTIME = this.DELAYTIMEDEFAULT; }
+        if (!this._config.SCOPE) {this._config.SCOPE = this.SCOPE; }
+
     }
     get config() {
         return this._config;
     }
+
+/*
+  private getToken() {
+    return http.post(`${configs.OIDC_TOKEN_ENDPOINT}`,
+        `client_id=${configs.OIDC_CLIENT_ID}&client_secret=${configs.OIDC_CLIENT_SECRET}&grant_type=password&username=${configs.OIDC_USERNAME}&password=${configs.OIDC_PASSWORD}`, 
+        { headers: {'Content-Type':'application/x-www-form-urlencoded' }})
+        .then( (response) => {
+          return Promise.resolve(response.data['access_token']);
+        })
+        .catch( (error) => {
+          return Promise.reject(error);
+        });
+  }
+
+    private requestData(deviceId, topic) {
+    return getToken().then((token) =>
+      http.get(`${configs.HOST}/api/v1/device/${configs.SERVICE_MONITORING_ID}/${deviceId}/${topic}?limit=50`,
+      { headers: {'content-type': 'application/json','Authorization': `Bearer ${token}` }})
+      .then( (response) => {
+        return Promise.resolve(response.data);
+      })
+      .catch((error) => {
+        return Promise.reject(error);
+      })  
+  );
+  }
+*/
 
     public authenticated() {
         return this._isAuthenticated;
@@ -72,16 +93,16 @@ export class AuthService  {
     }
 
     public getUser(): Observable<Object> {
-        return this.http.get(`${this.config.openIdConfig.userinfo_endpoint}`);
+        return Observable.fromPromise(http.get(`${this.config.oauth2Config.userinfo_endpoint}`));
     }
 
     public login(): string {
         this.reset();
-        return `${this.config.openIdConfig.authorization_endpoint}?client_id=${this.config.clientId}&redirect_uri=${this.config.REDIRECT}&response_type=code&scope=openid+email+profile`;
+        return `${this.config.oauth2Config.authorization_endpoint}?client_id=${this.config.clientId}&redirect_uri=${this.config.REDIRECT}&response_type=code&scope=${this.config.SCOPE}`;
     }
     public logout(): string {
         this.reset();
-        return  `${this.config.openIdConfig.end_session_endpoint}?redirect_uri=${this.config.REDIRECT}`;
+        return  `${this.config.oauth2Config.end_session_endpoint}?redirect_uri=${this.config.REDIRECT}`;
     }
 
     private reset() {
@@ -93,9 +114,9 @@ export class AuthService  {
     }
     private renewToken (res) {
         this.accessTimer = timer((res.expires_in * 1000) - this.config.DELAYTIME).subscribe(() => {
-            this.http.post(`${this.config.openIdConfig.token_endpoint}`,
+            http.post<IToken>(`${this.config.oauth2Config.token_endpoint}`,
             `client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&grant_type=refresh_token&refresh_token=${this.refreshToken}`,
-            this.options).map(res2 => <IToken>res2).subscribe(res2 => {
+            this.formOptions).then(res2 => res2.data).then(res2 => {
                 this.accessToken = res2.access_token;
                 this.refreshToken = res2.refresh_token;
                 this.renewToken(res2);
@@ -104,9 +125,10 @@ export class AuthService  {
     }
     public init(code ?: string) {
         this.reset();
-        this.http.post(`${this.config.openIdConfig.token_endpoint}`,
-        `client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&grant_type=authorization_code&code=${code}`,
-        this.options).map(res => <IToken>res).subscribe(res => {
+        http.post<IToken>(`${this.config.oauth2Config.token_endpoint}`,
+        (code)?`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&grant_type=authorization_code&code=${code}`
+        :`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&grant_type=password&username=${this.config.username}&password=${this.config.password}`,
+        this.formOptions).then(res => res.data).then(res=> {
             this.accessToken = res.access_token;
             this.refreshToken = res.refresh_token;
             this._isAuthenticated = true;
@@ -134,10 +156,13 @@ export interface Config {
     homeRoute: ()=> void;
     REDIRECT?: string;
     DELAYTIME?: number;
-    openIdConfig: OpenIdConfig;
+    oauth2Config: OAuth2Config;
+    username?: string;
+    password?: string;
+    SCOPE?: string;
 }
 
-export interface OpenIdConfig {
+export interface OAuth2Config {
     issuer: string;
     authorization_endpoint: string;
     token_endpoint: string;
@@ -147,18 +172,3 @@ export interface OpenIdConfig {
     [x: string]: any;
 }
 
-@Injectable()
-export class AuthInterceptor implements HttpInterceptor {
-  constructor(private authService: AuthService) {}
-
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-
-    const token = `Bearer ${this.authService.getToken()}`;
-    req = req.clone({
-      setHeaders: {
-        Authorization: token
-      }
-    });
-    return next.handle(req);
-  }
-}

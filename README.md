@@ -1,22 +1,21 @@
-﻿# Angular OIDC Client
+﻿# OAUTH2/OIDC Client
 
-Universal OpenID Connect Client library for Angular
+Universal OAUTH2/OpenID Connect Client library
 
 ## Installation: 
-`npm install angular-oidc-client --save`
+`npm install oauth2-oidc-client --save`
 
 ## Usage
 
-### auth.ts (NativeScript)
+### auth.ts (Angular NativeScript)
     import { Component, OnInit } from "@angular/core";
     import { RouterExtensions, PageRoute } from "nativescript-angular/router";
     import { HttpClient } from "@angular/common/http";
     import * as webViewModule from "tns-core-modules/ui/web-view";
     import * as url from "urlparser";
-    import { AuthService } from "angular-oidc-client";
+    import { AuthService } from "oauth2-oidc-client";
     import { timer } from "rxjs/observable/timer";
     import "rxjs/add/operator/switchMap";
-
 
     @Component({
         moduleId: module.id,
@@ -70,7 +69,8 @@ Universal OpenID Connect Client library for Angular
                     },
                     clientId: "...",
                     clientSecret: "...",
-                    openIdConfig: {
+                    // SCOPE: "openid+email+profile", // default
+                    oauth2Config: {
                         "issuer": "...",
                         "authorization_endpoint": "...",
                         "token_endpoint": "...",
@@ -157,13 +157,13 @@ Universal OpenID Connect Client library for Angular
         constructor() { }
     }
   
-### auth.ts (Web)
+### auth.ts (Angular Web)
     declare var document;
     import { Component, OnInit } from "@angular/core";
     import { Router, ActivatedRoute } from "@angular/router";
     import { HttpClient } from "@angular/common/http";
     import * as url from "urlparser";
-    import { AuthService } from "angular-oidc-client";
+    import { AuthService } from "oauth2-oidc-client";
     import { timer } from "rxjs/observable/timer";
     import "rxjs/add/operator/switchMap";
 
@@ -218,7 +218,8 @@ Universal OpenID Connect Client library for Angular
                     clientId: "...",
                     clientSecret: "...",
                     REDIRECT: "...",
-                    openIdConfig: {
+                    // SCOPE: "openid+email+profile", // default
+                    oauth2Config: {
                         "issuer": "...",
                         "authorization_endpoint": "...",
                         "token_endpoint": "...",
@@ -305,10 +306,32 @@ Universal OpenID Connect Client library for Angular
     }
 
 
-### app.module.ts
+### app.module.ts (Angular)
     ...
     import { HttpClientModule, HTTP_INTERCEPTORS } from "@angular/common/http";
-    import { AuthService, AuthInterceptor } from "angular-oidc-client";
+    import { AuthService } from "oauth2-oidc-client";
+
+    import {
+        HttpRequest,
+        HttpHandler,
+        HttpEvent,
+        HttpInterceptor,
+        HttpHeaders
+    } from "@angular/common/http;
+    @Injectable()
+    export class AuthInterceptor implements HttpInterceptor {
+        constructor(private authService: AuthService) {}
+        intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+
+            const token = `Bearer ${this.authService.getToken()}`;
+            req = req.clone({
+            setHeaders: {
+                Authorization: token
+            }
+            });
+            return next.handle(req);
+        }
+    }
 
     @NgModule({
         schemas: [...],
@@ -331,9 +354,14 @@ Universal OpenID Connect Client library for Angular
     export class AppModule { }
     ...
 
+# Auth.js (Web)
+    const authService = new (require("oauth2-oidc-client").AuthService)();
+    authService.config = {...}
+    authService.init(/*code*/);
+    var token = authService.getToken();
 
 ## Notes:
-Please setup the Redirect Condition OpenID setting to equal "*" (Any)  
+Please setup the Redirect Condition OAuth2/OpenID setting to equal "*" (Any)  
 
 
 
