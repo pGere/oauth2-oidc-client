@@ -15,12 +15,10 @@
  * limitations under the License.s
  */
 
-
+import http from 'axios';
 import { Observable } from "rxjs/Observable";
 import { Subscription } from "rxjs";
 import { timer } from "rxjs/observable/timer";
-import http from 'axios';
-
 // Observable class extensions
 import "rxjs/add/observable/of";
 // Observable operators
@@ -32,6 +30,12 @@ import "rxjs/add/operator/mergeMap";
 import "rxjs/add/operator/filter";
 import "rxjs/add/operator/debounceTime";
 import "rxjs/add/operator/distinctUntilChanged";
+
+//set process env variable
+declare var global;
+if(global["process"]===undefined) {global["process"] = {"env": {"NODE_ENV": "NS"}};}
+else if(global["process"]["env"]===undefined) {global["process"]["env"] = {"NODE_ENV": "NS"};}
+else if(global["process"]["env"]["NODE_ENV"]===undefined) {global["process"]["env"]["NODE_ENV"] = "NS";}
 
 
 export class AuthService  {
@@ -87,9 +91,9 @@ export class AuthService  {
     }
     private renewToken (res) {
         this.accessTimer = timer((res.expires_in * 1000) - this.config.DELAYTIME).subscribe(() => {
-            http.post<IToken>(`${this.config.oauth2Config.token_endpoint}`,
+            http.post(`${this.config.oauth2Config.token_endpoint}`,
             `client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&grant_type=refresh_token&refresh_token=${this.refreshToken}`,
-            this.formOptions).then(res2 => res2.data).then(res2 => {
+            this.formOptions).then(res2 => <IToken> res2.data).then(res2 => {
                 this.accessToken = res2.access_token;
                 this.refreshToken = res2.refresh_token;
                 this.renewToken(res2);
@@ -98,10 +102,10 @@ export class AuthService  {
     }
     public init(code ?: string) {
         this.reset();
-        http.post<IToken>(`${this.config.oauth2Config.token_endpoint}`,
+        http.post(`${this.config.oauth2Config.token_endpoint}`,
         (code)?`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&grant_type=authorization_code&code=${code}`
         :`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&grant_type=password&username=${this.config.username}&password=${this.config.password}`,
-        this.formOptions).then(res => res.data).then(res=> {
+        this.formOptions).then(res => <IToken> res.data).then(res=> {
             this.accessToken = res.access_token;
             this.refreshToken = res.refresh_token;
             this._isAuthenticated = true;
