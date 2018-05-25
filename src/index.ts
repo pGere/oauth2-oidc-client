@@ -33,10 +33,11 @@ import "rxjs/add/operator/distinctUntilChanged";
 
 //set process env variable
 declare var global;
-if(global["process"]===undefined) {global["process"] = {"env": {"NODE_ENV": "NS"}};}
-else if(global["process"]["env"]===undefined) {global["process"]["env"] = {"NODE_ENV": "NS"};}
-else if(global["process"]["env"]["NODE_ENV"]===undefined) {global["process"]["env"]["NODE_ENV"] = "NS";}
-
+if (global!==undefined) {
+    if(global["process"]===undefined) {global["process"] = {"env": {"NODE_ENV": "NS"}};}
+    else if(global["process"]["env"]===undefined) {global["process"]["env"] = {"NODE_ENV": "NS"};}
+    else if(global["process"]["env"]["NODE_ENV"]===undefined) {global["process"]["env"]["NODE_ENV"] = "NS";}
+}
 
 export class AuthService  {
     private accessToken: string;
