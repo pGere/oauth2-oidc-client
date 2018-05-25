@@ -15,8 +15,8 @@ Universal OAUTH2/OpenID Connect Client library
     import * as url from "urlparser";
     import { AuthService } from "oauth2-oidc-client";
     import { timer } from "rxjs/observable/timer";
+    import { map, filter, switchMap, timeout } from "rxjs/operators";
     import "rxjs/add/operator/switchMap";
-
     @Component({
         moduleId: module.id,
         template: // html
@@ -59,7 +59,8 @@ Universal OAUTH2/OpenID Connect Client library
             private router: RouterExtensions,
             private pageRoute: PageRoute,
             private http: HttpClient,
-            private authService: AuthService) {
+            private authService: AuthService,
+            private settings: Settings) {
                 this.authService.config = {
                     authRoute: () => {
                         this.router.navigate([""], { clearHistory: true });
@@ -69,6 +70,9 @@ Universal OAUTH2/OpenID Connect Client library
                     },
                     clientId: "...",
                     clientSecret: "...",
+                    // username: "?...",
+                    // password: "?...",
+                    // REDIRECT: "?...",
                     // SCOPE: "openid+email+profile", // default
                     oauth2Config: {
                         "issuer": "...",
@@ -81,6 +85,7 @@ Universal OAUTH2/OpenID Connect Client library
                 };
         }
 
+        // authorization_code login authentication
         public ngOnInit() {
             this.pageRoute.activatedRoute
             .switchMap(activatedRoute => activatedRoute.queryParams)
@@ -125,7 +130,7 @@ Universal OAUTH2/OpenID Connect Client library
             if (authCode) {
                 this.loading = true;
                 this.authURL = "";
-                this.authService.init(authCode);
+                this.authService.init(authCode); //  null for password grant
             }
         }
     }
@@ -156,12 +161,10 @@ Universal OAUTH2/OpenID Connect Client library
     export class AuthModule {
         constructor() { }
     }
+
   
 ### auth.ts (Angular Web)
     declare var document;
-    import { Component, OnInit } from "@angular/core";
-    import { Router, ActivatedRoute } from "@angular/router";
-    import { HttpClient } from "@angular/common/http";
     import * as url from "urlparser";
     import { AuthService } from "oauth2-oidc-client";
     import { timer } from "rxjs/observable/timer";
@@ -202,22 +205,26 @@ Universal OAUTH2/OpenID Connect Client library
         `
     })
     export class AuthComponent implements OnInit {
+        public authURL;
         public loading: boolean = true;
         public constructor(
-            private router: Router,
-            private pageRoute: ActivatedRoute,
+            private router: RouterExtensions,
+            private pageRoute: PageRoute,
             private http: HttpClient,
-            private authService: AuthService) {
+            private authService: AuthService,
+            private settings: Settings) {
                 this.authService.config = {
                     authRoute: () => {
-                        this.router.navigate([""]);
+                        this.router.navigate([""], { clearHistory: true });
                     },
                     homeRoute: () => {
-                        this.router.navigate(["/home"]);
+                        this.router.navigate(["/home"], { clearHistory: true });
                     },
                     clientId: "...",
                     clientSecret: "...",
-                    REDIRECT: "...",
+                    // username: "?...",
+                    // password: "?...",
+                    // REDIRECT: "?...",
                     // SCOPE: "openid+email+profile", // default
                     oauth2Config: {
                         "issuer": "...",
@@ -230,17 +237,18 @@ Universal OAUTH2/OpenID Connect Client library
                 };
         }
 
+        // authorization_code login authentication
         public ngOnInit() {
-            this.pageRoute.queryParams
-            .subscribe((params) => {
-            let action = params["action"];
+            this.pageRoute.activatedRoute
+            .switchMap(activatedRoute => activatedRoute.queryParams)
+            .forEach((params) => {
+                let action = params["action"];
                 if (action == null || action === "login") {
                     this.login();
                 } else if (action === "logout") {
                     this.logout();
                 }
-            });
-            this.loadStarted({url: window.location.href });
+                });
         }
 
         private parseURLCode(urlstr) {

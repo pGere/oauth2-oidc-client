@@ -15,12 +15,10 @@
  * limitations under the License.s
  */
 
-
+import http from 'axios';
 import { Observable } from "rxjs/Observable";
 import { Subscription } from "rxjs";
 import { timer } from "rxjs/observable/timer";
-import http from 'axios';
-
 // Observable class extensions
 import "rxjs/add/observable/of";
 // Observable operators
@@ -32,6 +30,12 @@ import "rxjs/add/operator/mergeMap";
 import "rxjs/add/operator/filter";
 import "rxjs/add/operator/debounceTime";
 import "rxjs/add/operator/distinctUntilChanged";
+
+//set process env variable
+declare var global;
+if(global["process"]===undefined) {global["process"] = {"env": {"NODE_ENV": "NS"}};}
+else if(global["process"]["env"]===undefined) {global["process"]["env"] = {"NODE_ENV": "NS"};}
+else if(global["process"]["env"]["NODE_ENV"]===undefined) {global["process"]["env"]["NODE_ENV"] = "NS";}
 
 
 export class AuthService  {
