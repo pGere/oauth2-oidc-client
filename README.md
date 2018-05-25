@@ -10,7 +10,6 @@ Universal OAUTH2/OpenID Connect Client library
 ### auth.ts (Angular NativeScript)
     import { Component, OnInit } from "@angular/core";
     import { RouterExtensions, PageRoute } from "nativescript-angular/router";
-    import { HttpClient } from "@angular/common/http";
     import * as webViewModule from "tns-core-modules/ui/web-view";
     import * as url from "urlparser";
     import { AuthService } from "oauth2-oidc-client";
@@ -58,9 +57,7 @@ Universal OAUTH2/OpenID Connect Client library
         public constructor(
             private router: RouterExtensions,
             private pageRoute: PageRoute,
-            private http: HttpClient,
-            private authService: AuthService,
-            private settings: Settings) {
+            private authService: AuthService) {
                 this.authService.config = {
                     authRoute: () => {
                         this.router.navigate([""], { clearHistory: true });
@@ -165,11 +162,12 @@ Universal OAUTH2/OpenID Connect Client library
   
 ### auth.ts (Angular Web)
     declare var document;
+    import { Component, OnInit } from "@angular/core";
+    import { Router } from "@angular/router";
     import * as url from "urlparser";
     import { AuthService } from "oauth2-oidc-client";
     import { timer } from "rxjs/observable/timer";
     import "rxjs/add/operator/switchMap";
-
 
     @Component({
         moduleId: module.id,
@@ -208,11 +206,9 @@ Universal OAUTH2/OpenID Connect Client library
         public authURL;
         public loading: boolean = true;
         public constructor(
-            private router: RouterExtensions,
-            private pageRoute: PageRoute,
-            private http: HttpClient,
-            private authService: AuthService,
-            private settings: Settings) {
+            private router: Router,
+            private pageRoute: ActivatedRoute,
+            private authService: AuthService) {
                 this.authService.config = {
                     authRoute: () => {
                         this.router.navigate([""], { clearHistory: true });
@@ -367,6 +363,7 @@ Universal OAUTH2/OpenID Connect Client library
     authService.config = {...}
     authService.init(/*code*/);
     var token = authService.getToken();
+    ...........
 
 ## Notes:
 Please setup the Redirect Condition OAuth2/OpenID setting to equal "*" (Any)  
