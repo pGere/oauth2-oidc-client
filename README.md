@@ -72,6 +72,8 @@ Universal OAUTH2/OpenID Connect Client library
                     // password: "?...",
                     // REDIRECT: "?...",
                     // SCOPE: "openid+email+profile", // default
+                    // state: "?...",
+                    // nonce: "?...",
                     oauth2Config: {
                         "issuer": "...",
                         "authorization_endpoint": "...",
@@ -100,9 +102,11 @@ Universal OAUTH2/OpenID Connect Client library
         private parseURLCode(urlstr) {
             let parsedURL = url.parse(urlstr);
             let code = parsedURL.query ? parsedURL.query.params["code"] : null;
+            let state = parsedURL.query ? parsedURL.query.params["state"] : null;
+            let nonce = parsedURL.query ? parsedURL.query.params["nonce"] : null;
             let redirectName = parsedURL.path.base;
             if (code && redirectName.match(`\\w*/?${this.authService.config.REDIRECT}`)) {
-                return code;
+                return {code, state, nonce};
             } else {
                 return null;
             }
@@ -124,11 +128,11 @@ Universal OAUTH2/OpenID Connect Client library
         }
 
         public loadStarted(e: webViewModule.LoadEventData) {
-            let authCode = this.parseURLCode(e.url);
-            if (authCode) {
+            let authData = this.parseURLCode(e.url);
+            if (authData && authData.state===this.authService.config.state) {
                 this.loading = true;
                 this.authURL = "";
-                this.authService.init(authCode); //  null for password grant
+                this.authService.init(authData.code); //  null for password grant
             }
         }
     }
@@ -224,6 +228,8 @@ Universal OAUTH2/OpenID Connect Client library
                     // password: "?...",
                     // REDIRECT: "?...",
                     // SCOPE: "openid+email+profile", // default
+                    // state: "?...",
+                    // nonce: "?...",
                     oauth2Config: {
                         "issuer": "...",
                         "authorization_endpoint": "...",
@@ -252,9 +258,11 @@ Universal OAUTH2/OpenID Connect Client library
         private parseURLCode(urlstr) {
             let parsedURL = url.parse(urlstr);
             let code = parsedURL.query ? parsedURL.query.params["code"] : null;
+            let state = parsedURL.query ? parsedURL.query.params["state"] : null;
+            let nonce = parsedURL.query ? parsedURL.query.params["nonce"] : null;
             let redirectName = parsedURL.path.base;
             if (code && redirectName.match(`\\w*/?${this.authService.config.REDIRECT}`)) {
-                return code;
+                return {code, state, nonce};
             } else {
                 return null;
             }
@@ -275,11 +283,12 @@ Universal OAUTH2/OpenID Connect Client library
             this.authService.getUser().subscribe(x => console.log(JSON.stringify(x)));
         }
 
-        public loadStarted(e) {
-            let authCode = this.parseURLCode(e.url);
-            if (authCode) {
+        public loadStarted(e: webViewModule.LoadEventData) {
+            let authData = this.parseURLCode(e.url);
+            if (authData && authData.state===this.authService.config.state) {
                 this.loading = true;
-                this.authService.init(authCode);
+                this.authURL = "";
+                this.authService.init(authData.code); //  null for password grant
             }
         }
     }

@@ -76,7 +76,7 @@ export class AuthService  {
 
     public login(): string {
         this.reset();
-        return `${this.config.oauth2Config.authorization_endpoint}?client_id=${this.config.clientId}&redirect_uri=${this.config.REDIRECT}&response_type=code&scope=${this.config.SCOPE}`;
+        return `${this.config.oauth2Config.authorization_endpoint}?client_id=${this.config.clientId}&redirect_uri=${this.config.REDIRECT}&response_type=code&scope=${this.config.SCOPE}&state=${this.config.state}&nonce=${this.config.nonce}`;
     }
     public logout(): string {
         this.reset();
@@ -138,6 +138,8 @@ export interface Config {
     username?: string;
     password?: string;
     SCOPE?: string;
+    state?: string;
+    nonce?: string;
 }
 
 export interface OAuth2Config {
