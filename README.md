@@ -72,7 +72,7 @@ Universal OAUTH2/OpenID Connect Client library
                     // password: "?...",
                     // REDIRECT: "?...",
                     // SCOPE: "openid+email+profile", // default
-                    // state: "?...",
+                    // state: Math.random().toString(36).substring(7),
                     // nonce: "?...",
                     oauth2Config: {
                         "issuer": "...",
@@ -99,7 +99,7 @@ Universal OAUTH2/OpenID Connect Client library
                 });
         }
 
-        private parseURLCode(urlstr) {
+        private parseURLData(urlstr) {
             let parsedURL = url.parse(urlstr);
             let code = parsedURL.query ? parsedURL.query.params["code"] : null;
             let state = parsedURL.query ? parsedURL.query.params["state"] : null;
@@ -128,8 +128,8 @@ Universal OAUTH2/OpenID Connect Client library
         }
 
         public loadStarted(e: webViewModule.LoadEventData) {
-            let authData = this.parseURLCode(e.url);
-            if (authData && authData.state===this.authService.config.state) {
+            let authData = this.parseURLData(e.url);
+            if (authData && authData.state === this.authService.config.state) {
                 this.loading = true;
                 this.authURL = "";
                 this.authService.init(authData.code); //  null for password grant
@@ -228,7 +228,7 @@ Universal OAUTH2/OpenID Connect Client library
                     // password: "?...",
                     // REDIRECT: "?...",
                     // SCOPE: "openid+email+profile", // default
-                    // state: "?...",
+                    // state: Math.random().toString(36).substring(7),
                     // nonce: "?...",
                     oauth2Config: {
                         "issuer": "...",
@@ -255,7 +255,7 @@ Universal OAUTH2/OpenID Connect Client library
                 });
         }
 
-        private parseURLCode(urlstr) {
+        private parseURLData(urlstr) {
             let parsedURL = url.parse(urlstr);
             let code = parsedURL.query ? parsedURL.query.params["code"] : null;
             let state = parsedURL.query ? parsedURL.query.params["state"] : null;
@@ -284,8 +284,8 @@ Universal OAUTH2/OpenID Connect Client library
         }
 
         public loadStarted(e: webViewModule.LoadEventData) {
-            let authData = this.parseURLCode(e.url);
-            if (authData && authData.state===this.authService.config.state) {
+            let authData = this.parseURLData(e.url);
+            if (authData && authData.state === this.authService.config.state) {
                 this.loading = true;
                 this.authURL = "";
                 this.authService.init(authData.code); //  null for password grant
