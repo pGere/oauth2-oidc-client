@@ -8,6 +8,7 @@ Universal OAUTH2/OpenID Connect Client library
 ## Usage
 
 ### auth.ts (Angular NativeScript)
+
     import { Component, OnInit } from "@angular/core";
     import { RouterExtensions, PageRoute } from "nativescript-angular/router";
     import * as webViewModule from "tns-core-modules/ui/web-view";
@@ -161,6 +162,7 @@ Universal OAUTH2/OpenID Connect Client library
 
   
 ### auth.ts (Angular Web)
+    
     declare var document;
     import { Component, OnInit } from "@angular/core";
     import { Router } from "@angular/router";
@@ -311,6 +313,7 @@ Universal OAUTH2/OpenID Connect Client library
 
 
 ### app.module.ts (Angular)
+
     ...
     import { HttpClientModule, HTTP_INTERCEPTORS } from "@angular/common/http";
     import { AuthService } from "oauth2-oidc-client";
@@ -359,6 +362,7 @@ Universal OAUTH2/OpenID Connect Client library
     ...
 
 # Auth.js (Web)
+
     const authService = new (require("oauth2-oidc-client").AuthService)();
     authService.config = {...}
     authService.init(/*code*/);
@@ -366,7 +370,8 @@ Universal OAUTH2/OpenID Connect Client library
     ...........
 
 ## Notes:
-Please setup the Redirect Condition OAuth2/OpenID setting to equal "*" (Any)  
+
+    Please setup the Redirect Condition OAuth2/OpenID setting to equal "*" (Any)  
 
 
 
