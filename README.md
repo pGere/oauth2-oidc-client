@@ -226,7 +226,7 @@ Universal OAUTH2/OpenID Connect Client library
                     clientSecret: "...",
                     // username: "?...",
                     // password: "?...",
-                    REDIRECT: "https://....",
+                    REDIRECT: window.location.href,
                     // SCOPE: "openid+email+profile", // default
                     // state: Math.random().toString(36).substring(7),
                     // nonce: "?...",
@@ -248,7 +248,14 @@ Universal OAUTH2/OpenID Connect Client library
             .forEach((params) => {
                 let action = params["action"];
                 if (action == null || action === "login") {
-                    this.login();
+                    let authData = this.parseURLData(window.location.href);
+                    if (authData && authData.state === this.authService.config.state) {
+                        this.loading = true;
+                        this.authURL = "";
+                        this.authService.init(authData.code); //  null for password grant
+                    } else { 
+                        this.login();
+                    }
                 } else if (action === "logout") {
                     this.logout();
                 }
@@ -281,20 +288,7 @@ Universal OAUTH2/OpenID Connect Client library
 
         public getUser() {
             this.authService.getUser().subscribe(x => console.log(JSON.stringify(x)));
-        }
-
-        /*
-        // catch code using function after redirect
-        // ngOnInit() of redirected to page:
-        public loadStarted(e) {
-            let authData = this.parseURLData(e.url);
-            if (authData && authData.state === this.authService.config.state) {
-                this.loading = true;
-                this.authURL = "";
-                this.authService.init(authData.code); //  null for password grant
-            }
-        }
-        */
+        }        
     }
 
     import { NgModule, NO_ERRORS_SCHEMA } from "@angular/core";
