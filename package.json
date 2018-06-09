@@ -1,8 +1,9 @@
 {
   "name": "oauth2-oidc-client",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "Universal OAuth2/OpenID Connect Client library",
-  "main": "dist/index.js",
+  "main": "dist/index",
+  "typings": "dist/index",
   "scripts": {
     "lint": "tslint src/**/*.ts",
     "test": "tsc && karma start",
