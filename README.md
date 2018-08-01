@@ -1,6 +1,6 @@
 ﻿# OAUTH2/OIDC Client
 
-Universal OAUTH2/OpenID Connect Client library
+Universal OAUTH2/OpenID Connect Client [library](https://www.npmjs.com/package/oauth2-oidc-client)
 
 ## Installation: 
 `npm install oauth2-oidc-client --save`
