@@ -21,31 +21,7 @@
         moduleId: module.id,
         template: // html
         `
-        <style>
-            .icon-moon {
-                font-family: "icomoon";
-            }
-            @keyframes rotating {
-                from {
-                transform: rotate(0deg);
-                }
-                to {
-                transform: rotate(360deg);
-                }
-            }
-            .rotating {
-                animation: rotating 2s linear infinite;
-            }
-        </style>
-        <Label
-            visibility="{{ loading ? 'visible' : 'collapsed' }}"
-            text=""
-            textWrap="true"
-            class="icon-moon rotating"
-            verticalAlignment="middle"
-            style="font-size: 30; display: inline-block;"
-            horizontalAlignment="center">
-        </Label>
+        <ActivityIndicator row="1" #activityIndicator [busy]="loading" width="100" height="100" class="activity-indicator"></ActivityIndicator>
         <WebView
             visibility="{{ !loading ? 'visible' : 'collapsed' }}"
             [src]="authURL"
