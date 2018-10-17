@@ -104,7 +104,7 @@ export class AuthService  {
     public init(code ?: string, options: IInitOptions = {}) {
         this.reset();
 
-        let formOptions = Object.assign({}, this.formOptions);
+        let formOptions:any = Object.assign({}, this.formOptions);
         if (options.httpAuth) {
           formOptions.auth = {
             username: this.config.clientId,
@@ -125,7 +125,7 @@ export class AuthService  {
     }
 }
 
-interface IInitOptions {
+export interface IInitOptions {
     httpAuth?: boolean
 }
 
