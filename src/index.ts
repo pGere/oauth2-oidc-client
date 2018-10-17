@@ -103,8 +103,10 @@ export class AuthService  {
     }
     public init(code ?: string, options: IInitOptions = {}) {
         this.reset();
+
+        let formOptions = Object.assign({}, this.formOptions);
         if (options.httpAuth) {
-          this.formOptions.auth = {
+          formOptions.auth = {
             username: this.config.clientId,
             password: this.config.clientSecret,
           }
@@ -113,7 +115,7 @@ export class AuthService  {
         http.post(`${this.config.oauth2Config.token_endpoint}`,
         (code)?`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&grant_type=authorization_code&code=${code}`
         :`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&grant_type=password&username=${this.config.username}&password=${this.config.password}`,
-        this.formOptions).then(res => <IToken> res.data).then(res=> {
+        formOptions).then(res => <IToken> res.data).then(res=> {
             this.accessToken = res.access_token;
             this.refreshToken = res.refresh_token;
             this._isAuthenticated = true;
