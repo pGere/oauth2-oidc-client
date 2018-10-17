@@ -49,7 +49,7 @@ export class AuthService  {
     private readonly REDIRECTDEFAULT = "app";
     private readonly DELAYTIMEDEFAULT = 10 * 1000;
     private readonly SCOPE = "openid+email+profile";
-    
+
     private _config: Config;
     set config(config: Config) {
         this._config = config;
@@ -101,8 +101,17 @@ export class AuthService  {
             }, (err) => this.login());
         }, (err) => console.error(err));
     }
-    public init(code ?: string) {
+    public init(code ?: string, options: IInitOptions = {}) {
         this.reset();
+
+        let formOptions = Object.assign({}, this.formOptions);
+        if (options.httpAuth) {
+          formOptions.auth = {
+            username: this.config.clientId,
+            password: this.config.clientSecret,
+          }
+        }
+
         http.post(`${this.config.oauth2Config.token_endpoint}`,
         (code)?`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&grant_type=authorization_code&code=${code}`
         :`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&grant_type=password&username=${this.config.username}&password=${this.config.password}`,
@@ -114,6 +123,10 @@ export class AuthService  {
             this.renewToken(res);
         }, (err) => console.error(err));
     }
+}
+
+interface IInitOptions {
+    httpAuth?: boolean
 }
 
 interface IToken {
