@@ -45,7 +45,7 @@ export class AuthService  {
     private accessTimer: Subscription;
     private refreshTimer: Subscription;
     private _isAuthenticated: boolean;
-    private formOptions = { headers: {'Content-Type':'application/x-www-form-urlencoded' }};
+    private formOptions:any = { headers: {'Content-Type':'application/x-www-form-urlencoded' }};
     private readonly REDIRECTDEFAULT = "app";
     private readonly DELAYTIMEDEFAULT = 10 * 1000;
     private readonly SCOPE = "openid+email+profile";
@@ -103,10 +103,8 @@ export class AuthService  {
     }
     public init(code ?: string, options: IInitOptions = {}) {
         this.reset();
-
-        let formOptions:any = Object.assign({}, this.formOptions);
         if (options.httpAuth) {
-          formOptions.auth = {
+          this.formOptions.auth = {
             username: this.config.clientId,
             password: this.config.clientSecret,
           }
