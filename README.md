@@ -142,7 +142,7 @@
 
   
 ### auth.ts (Angular Web)
-    
+    // beta
     declare var document;
     import { Component, OnInit } from "@angular/core";
     import { Router } from "@angular/router";
@@ -345,7 +345,7 @@
     ...
 
 # Auth.js (Web)
-
+    // draft
     const authService = new (require("oauth2-oidc-client").AuthService)();
     authService.config = {...}
     authService.init(/*code*/);
