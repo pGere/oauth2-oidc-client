@@ -113,7 +113,7 @@ export class AuthService  {
         }
 
         http.post(`${this.config.oauth2Config.token_endpoint}`,
-        (code)?`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&grant_type=authorization_code&code=${code}`
+        (code)?`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&code=${code}`
         :`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&grant_type=password&username=${this.config.username}&password=${this.config.password}`,
         formOptions).then(res => <IToken> res.data).then(res=> {
             this.accessToken = res.access_token;
