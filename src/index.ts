@@ -113,14 +113,14 @@ export class AuthService  {
         }
 
         http.post(`${this.config.oauth2Config.token_endpoint}`,
-        (code)?`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&code=${code}`
+        (code)?`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&redirect_uri=${this.config.REDIRECT}&grant_type=authorization_code&code=${code}`
         :`client_id=${this.config.clientId}&client_secret=${this.config.clientSecret}&grant_type=password&username=${this.config.username}&password=${this.config.password}`,
         formOptions).then(res => <IToken> res.data).then(res=> {
+            console.log(res);
             this.accessToken = res.access_token;
             this.refreshToken = res.refresh_token;
             this._isAuthenticated = true;
             this.config.homeRoute();
-            this.renewToken(res);
         }, (err) => console.error(err));
     }
 }
